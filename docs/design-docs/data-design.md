@@ -1,7 +1,7 @@
 # Data Design
 
 > **목적**: 시드 데이터의 구체적인 구조, 필드 정의, 작성 기준, 샘플 스키마를 정의한다.
-> 데이터 정책(허용 출처, 금지 사항)은 [`data-policy.md`](data-policy.md)를 참고한다.
+> 데이터 정책(허용 출처, 금지 사항)은 [`data-policy.md`](../references/data-policy.md)를 참고한다.
 
 ---
 
@@ -186,4 +186,4 @@ data/chroma/             # 로컬 Chroma 인덱스 (커밋 금지)
 - 장소·좌표 데이터는 카카오 로컬 API만 사용한다.
 - 분위기 서술 텍스트는 실재 장소를 확인한 뒤 사람이 직접 작성하고 검수한다.
 
-상세 정책 → [`data-policy.md`](data-policy.md)
+상세 정책 → [`data-policy.md`](../references/data-policy.md)

@@ -1,7 +1,7 @@
 # RAG Design
 
 > **목적**: RAG 파이프라인의 설계 결정과 각 단계의 구현 명세를 정의한다.
-> 시스템 전체 구조는 [`architecture.md`](architecture.md), 평가 기준은 [`evaluation.md`](evaluation.md)를 참고한다.
+> 시스템 전체 구조는 [`architecture.md`](architecture.md), 평가 기준은 [`evaluation.md`](../references/evaluation.md)를 참고한다.
 
 ---
 
@@ -125,7 +125,7 @@ final_score = α × atmosphere_score + (1 - α) × distance_score
 
 - 검색된 상위 `k`개 시드의 `atmosphere_text`, `attributes`, `source`를 프롬프트에 삽입한다.
 - 각 시드의 `place_id`를 근거로 명시한다.
-- 프롬프트 템플릿: [`docs/prompts/recommendation-system.md`](prompts/recommendation-system.md) 참고.
+- 프롬프트 템플릿: [`docs/prompts/recommendation-system.md`](../prompts/recommendation-system.md) 참고.
 
 ### 4-2. 생성 LLM 호출
 

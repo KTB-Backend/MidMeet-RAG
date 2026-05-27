@@ -1,5 +1,8 @@
 # Data Policy
 
+> **범위**: 이 문서는 **데이터 정책**(허용 출처·금지 사항·산출물 관리)만 다룬다.
+> 시드 레코드 스키마·필드 정의·작성 기준의 **정본**은 [`data-design.md`](../design-docs/data-design.md)다.
+
 ## Core Rules
 
 - 크롤링을 사용하지 않는다.
@@ -13,21 +16,10 @@
 - 공공데이터: 주차, 와이파이, 좌석, 운영 정보 등 구조화 속성.
 - 수제 seed: 실재 장소를 확인한 뒤 사람이 작성하거나 검수한 분위기 설명.
 
-## Seed Record Expectations
+## Seed Record Schema
 
-각 seed는 식당이나 카페 한 곳을 나타낸다. 최소 필드는 다음을 기준으로 한다.
-
-- `place_id`: 내부 식별자.
-- `name`: 장소명.
-- `address`: 주소 또는 행정구역.
-- `latitude`, `longitude`: 거리 계산용 좌표.
-- `atmosphere_text`: 의미 검색 대상이 되는 분위기 설명.
-- `attributes`: 주차, 와이파이, 좌석, 소음, 예약 등 구조화 속성.
-- `source`: 출처, 작성자, 확인일 등 provenance.
-
-## Atmosphere Text
-
-좋은 seed는 "조용함", "대화하기 좋음", "좌석 간격", "단체석", "분위기"처럼 사용자 질의와 매칭될 표현을 포함한다. 단순 카테고리 나열은 검색 품질을 떨어뜨린다.
+시드 레코드의 필수 필드·필드 정의·`atmosphere_text` 작성 기준·샘플 JSON은 정본 문서에 있다.
+→ [`data-design.md`](../design-docs/data-design.md)
 
 ## Generated Data
 

@@ -1,7 +1,7 @@
 # Task Plan
 
 > **목적**: 구현 마일스톤과 각 작업의 담당 도구, 완료 조건을 정의한다.
-> 작업 우선순위의 근거는 [`project-brief.md`](project-brief.md)의 "다음 할 일" 섹션이다.
+> 작업 우선순위의 근거는 [`project-brief.md`](../product-specs/project-brief.md)의 "다음 할 일" 섹션이다.
 > 담당 도구: **Claude Code** (설계·검토·검증) / **Codex CLI** (구현·테스트·리팩토링)
 
 ---
@@ -25,12 +25,12 @@
 
 | 작업 | 설명 | 완료 조건 |
 |------|------|-----------|
-| 프로젝트 기획서 확정 | `docs/project-brief.md` 작성 | MVP 범위·제외 범위·의사결정 정리 |
-| 아키텍처 설계 | `docs/architecture.md` 작성 | 모듈 경계·의존 규칙·설정 주입 정의 |
-| RAG 파이프라인 설계 | `docs/rag-design.md` 작성 | 스코어링 수식·추상화 구조 정의 |
-| 데이터 구조 설계 | `docs/data-design.md` 작성 | 시드 스키마·샘플 JSON 정의 |
-| API 설계 초안 | `docs/api-design.md` 작성 | Python 인터페이스 후보 정의 (DRAFT) |
-| 평가 기준 정의 | `docs/evaluation.md` 작성 | 평가 레이어·체크리스트 정의 |
+| 프로젝트 기획서 확정 | `docs/product-specs/project-brief.md` 작성 | MVP 범위·제외 범위·의사결정 정리 |
+| 아키텍처 설계 | `docs/design-docs/architecture.md` 작성 | 모듈 경계·의존 규칙·설정 주입 정의 |
+| RAG 파이프라인 설계 | `docs/design-docs/rag-design.md` 작성 | 스코어링 수식·추상화 구조 정의 |
+| 데이터 구조 설계 | `docs/design-docs/data-design.md` 작성 | 시드 스키마·샘플 JSON 정의 |
+| API 설계 초안 | `docs/design-docs/api-design.md` 작성 | Python 인터페이스 후보 정의 (DRAFT) |
+| 평가 기준 정의 | `docs/references/evaluation.md` 작성 | 평가 레이어·체크리스트 정의 |
 | AGENTS.md / CLAUDE.md 정비 | AI 개발 하네스 구축 | 역할 분리·중복 제거 |
 
 ---
@@ -53,7 +53,7 @@
 |------|------|
 | **담당** | 수동 작업 (사용자) |
 | **작업** | 선정된 상권에서 식당·카페 20–30개 시드 레코드 작성 |
-| **기준** | `docs/data-design.md`의 스키마와 atmosphere_text 작성 기준 준수 |
+| **기준** | `docs/design-docs/data-design.md`의 스키마와 atmosphere_text 작성 기준 준수 |
 | **완료 조건** | `data/seeds/raw/` 에 JSON 파일 저장, 필드 전체 작성, atmosphere_text 50자 이상 |
 
 ### M1-3. 시드 검증
@@ -184,6 +184,6 @@
 ## 다음 즉시 할 일
 
 1. **시작 상권 선정** (사용자 결정, Claude Code 후보 분석 지원)
-2. **M1-2 시드 작성** (20–30개, `docs/data-design.md` 기준)
+2. **M1-2 시드 작성** (20–30개, `docs/design-docs/data-design.md` 기준)
 3. **M2-1 카카오 로컬 API 연동** (Codex CLI)
    - Codex 구현 프롬프트는 요청 시 Claude Code가 작성

@@ -186,4 +186,4 @@
 6. 카카오맵 결과 표시 UI.
 7. 파이프라인 완성 후: 임베딩 모델 비교, 가중치 튜닝, 나머지 상권으로 시드 확장.
 
-세부 작업 일정 → [`docs/task-plan.md`](task-plan.md)
+세부 작업 일정 → [`task-plan.md`](../exec-plans/task-plan.md)
