@@ -1,54 +1,180 @@
-# Repository Guidelines
+# AGENTS.md — Codex CLI 구현 지침
 
-## Project Priority
+이 파일은 Codex CLI가 이 레포에서 작업할 때 항상 따라야 하는 지침이다.
+설계·아키텍처 결정은 Claude Code(CLAUDE.md)가 담당한다. 판단이 필요한 상황은 **에스컬레이션 기준** 섹션을 참고해 멈추고 보고한다.
 
-This repository is for "어디서 만날래?", a RAG-based meeting-place recommendation service. The priority is the RAG pipeline harness, not the web app. Build and verify this flow first: seed data -> embedding -> Chroma storage -> hybrid scoring -> grounded recommendation generation. UI, Kakao Map rendering, sessions, and collaboration features come later.
+---
 
-## Project Structure
+## 프로젝트 개요
 
-- `docs/project-brief.md`: product and RAG design source of truth.
-- `docs/prompts/`: grounded generation prompt templates.
-- `data/seeds/raw/`: manually verified factual seed sources.
-- `data/seeds/processed/`: normalized records ready for embedding.
-- `data/chroma/`: local Chroma indexes; ignored and never committed.
-- `packages/rag_core/`: reusable RAG logic for loading, embedding, retrieval, scoring, prompt assembly, and generation adapters.
-- `apps/rag_api/`: API layer only; keep RAG logic out of API code.
-- `scripts/`: repeatable harness commands for indexing, querying, and evaluation.
-- `tests/`: deterministic automated tests.
-- `evals/`: slower retrieval and recommendation-quality checks.
+**"어디서 만날래?"** — 여러 명의 출발 위치를 기반으로, 중간 지점 근처의 식당·카페를 분위기와 거리 기준으로 추천하는 RAG 기반 서비스.
 
-## Development Rules
+핵심은 단순 거리·카테고리 필터가 아니라, "조용히 얘기 나누기 좋은 곳" 같은 자연어 의도를 이해하는 RAG 파이프라인이다. 구현보다 **파이프라인 학습·튜닝**이 주목적이다.
 
-Use Python 3.11. Keep the core pipeline runnable without a web server. Separate geocoding, centroid calculation, seed validation, embedding, Chroma indexing, retrieval, distance normalization, hybrid scoring, and generation. Model names, Chroma paths, API keys, and scoring weights must be configurable, not hard-coded.
+상세 기획 → [`docs/project-brief.md`](docs/project-brief.md)
 
-Expected local flow once tooling exists:
+---
 
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pytest tests/
-python -m scripts.index_seeds
-python -m scripts.query_harness
+## Codex의 역할
+
+Codex CLI는 **구현 전담**이다. 다음 작업을 수행한다.
+
+- Python 코드 구현 및 리팩토링
+- RAG 파이프라인 구현 (임베딩, 검색, 스코어링, 생성)
+- 카카오 로컬 API 연동 코드 구현
+- 시드 데이터 로딩·검증 코드 작성
+- 하이브리드 스코어링 구현
+- 로컬 LLM 호출 모듈 구현
+- pytest 테스트 작성 및 수정
+- 문서와 코드의 불일치 발견 시 보고
+
+---
+
+## 기술 스택
+
+| 구성 요소 | 선택 | 상태 |
+|-----------|------|------|
+| 개발 언어 | Python 3.11 | 확정 |
+| 장소·좌표·가게 검색 | 카카오 로컬 API | 확정 |
+| 임베딩 모델 | `dragonkue/snowflake-arctic-embed-l-v2.0-ko` | 확정 (교체 가능 추상화 필수) |
+| 벡터 DB | Chroma | 확정 |
+| 생성 LLM | `Qwen/Qwen3-4B-Instruct-2507` | 확정 (교체 가능 추상화 필수) |
+| 지도 UI | 카카오맵 | 확정 |
+| 백엔드 웹 프레임워크 | TBD | 미확정 — 임의로 결정하지 않음 |
+| 프론트엔드 프레임워크 | TBD | 미확정 — 임의로 결정하지 않음 |
+| 배포 환경 | TBD | 미확정 — 임의로 결정하지 않음 |
+
+---
+
+## 프로젝트 구조
+
+```
+packages/rag_core/    # 핵심 RAG 로직. API·UI 의존성 없음.
+apps/rag_api/         # 추후 추가할 얇은 API 계층 (프레임워크 TBD). rag_core 호출만.
+scripts/              # 인덱싱·쿼리·평가 실행 진입점.
+tests/                # 결정적(deterministic) pytest 테스트. 모델·Chroma 의존성 없음.
+evals/                # 모델·Chroma 의존적인 검증 케이스. 고정 fixture 사용.
+data/seeds/raw/       # 수제작 시드 원본 (커밋됨).
+data/seeds/processed/ # 임베딩 준비 완료 레코드 (커밋됨).
+data/chroma/          # 로컬 Chroma 인덱스 (커밋 금지).
+docs/                 # 설계·정책 문서.
 ```
 
-## Data Rules
+상세 아키텍처 → [`docs/architecture.md`](docs/architecture.md)
 
-Do not crawl. Use Kakao Local API only for allowed place, coordinate, and live search data. Seed atmosphere text must be manually written or verified from legitimate factual sources. Never store LLM-invented atmosphere descriptions as factual seed data. Each seed should represent one real venue and include coordinates, provenance, structured attributes where available, and atmosphere text specific enough for semantic search.
+---
 
-Recommendations must cite or expose retrieved seed evidence. If a claim is not in retrieved seeds or metadata, omit it or state uncertainty.
+## 파이프라인 구현 순서
 
-## Testing Rules
+다음 순서를 기본값으로 삼는다. 이전 단계가 안정되지 않으면 다음 단계로 넘어가지 않는다.
 
-Use `pytest`. Name tests `test_<behavior>()` in `tests/test_<module>.py`. Cover centroid math, distance normalization, score weighting, metadata preservation, seed validation, retrieval result shape, and prompt grounding constraints. Put model-dependent or Chroma-heavy checks in `evals/` with fixed fixtures and expected ranking behavior.
+1. 시드 스키마 정의 및 검증
+2. 임베딩 어댑터 (교체 가능 추상화)
+3. Chroma 인덱싱
+4. 쿼리 검색
+5. 거리 정규화
+6. 하이브리드 스코어링
+7. 근거 기반 프롬프트 조립
+8. 생성 어댑터 (교체 가능 추상화)
+9. 평가 하네스
+10. API · UI 연동 (TBD)
 
-## Completion Criteria
+---
 
-A RAG task is complete only when it has a documented command, deterministic tests for changed logic, and source-grounded behavior. Indexing work must verify Chroma records and metadata. Retrieval work must expose semantic score, distance score, and final hybrid score. Generation work must verify output is constrained to retrieved seed evidence.
+## 시드 데이터 스키마
 
-## Commit & PR Guidelines
+각 시드는 식당·카페 한 곳을 나타낸다. 필수 필드:
 
-The current history only has `Initial commit`, so use imperative commits such as `Add seed validation harness`. PRs should state the pipeline step changed, data assumptions, commands run, and evaluation gaps. Include sample query output for retrieval or generation changes.
+| 필드 | 설명 |
+|------|------|
+| `place_id` | 내부 식별자 |
+| `name` | 장소명 |
+| `address` | 주소 또는 행정구역 |
+| `latitude` | 거리 계산용 위도 |
+| `longitude` | 거리 계산용 경도 |
+| `atmosphere_text` | 의미 검색 대상 분위기 서술 |
+| `attributes` | 주차·와이파이·좌석·소음·예약 등 구조화 속성 |
+| `source` | 출처·작성자·확인일 등 provenance |
 
-## Security
+`atmosphere_text`는 "조용함", "대화하기 좋음", "좌석 간격 넓음" 같은 검색 매칭 표현을 포함해야 한다. 단순 카테고리 나열은 검색 품질을 저하시킨다.
 
-Keep `.env` local. Do not commit API keys, Chroma indexes, SQLite files, downloaded model weights, private source files, or generated artifacts that cannot be reproduced.
+상세 데이터 정책 → [`docs/data-policy.md`](docs/data-policy.md)
+
+---
+
+## 구현 규칙
+
+### 기본 원칙
+
+- 작은 단위로 변경한다. 관련 없는 파일을 수정하지 않는다.
+- `docs/project-brief.md`와 충돌하는 구현은 하지 않는다.
+- 확정되지 않은 기술은 임의로 결정하지 않고 `TBD` 또는 `TODO`로 남긴다.
+
+### 문서 갱신 의무
+
+변경이 발생하면 해당 문서를 코드와 함께 갱신한다.
+
+| 변경 대상 | 갱신할 문서 |
+|-----------|-------------|
+| RAG 파이프라인 구조·모듈 경계 | `docs/architecture.md` |
+| 시드 스키마·데이터 정책 | `docs/data-policy.md` |
+| API 계약 (엔드포인트·요청·응답) | `docs/api-design.md` (신규 생성) |
+
+### RAG 구현
+
+- 임베딩 모델과 생성 LLM은 교체 가능한 추상화 계층을 둔다. 모델명을 비즈니스 로직에 하드코딩하지 않는다.
+- LLM은 검색된 시드 정보 안에서만 답하도록 프롬프트를 구성한다.
+- 거리 점수와 분위기 유사도 점수는 0–1 스케일로 정규화한 뒤 가중합한다.
+- 가중치는 하드코딩하지 않고 설정값 또는 상수로 분리한다.
+- 모델명, Chroma 경로, API 키, 검색 개수, 거리 반경은 환경변수 또는 설정 파일로 주입한다.
+
+### 데이터
+
+- 크롤링은 사용하지 않는다. 장소·좌표 데이터는 카카오 로컬 API만 사용한다.
+- LLM이 생성한 분위기 설명을 factual 시드로 저장하지 않는다.
+- 추천 생성 시 시드 근거가 없는 주장은 포함하지 않는다.
+
+### 보안
+
+- `.env`, Chroma 인덱스, 모델 가중치, API 응답 캐시, 임시 산출물은 커밋하지 않는다.
+- API 키를 코드에 직접 쓰지 않는다.
+
+---
+
+## 완료 조건
+
+다음을 모두 충족해야 작업이 완료된 것으로 간주한다.
+
+- [ ] 관련 pytest 테스트가 통과한다 (`python -m pytest`).
+- [ ] 실행 방법이 문서화되어 있다.
+- [ ] 변경한 파일 목록과 변경 이유를 요약한다.
+- [ ] `docs/project-brief.md`와 충돌하는 사항이 없다.
+- [ ] 미확정 사항은 `TBD`로 남긴다.
+- [ ] RAG 검색 결과에 semantic score, distance score, final score가 포함된다.
+- [ ] 생성 결과에 근거 시드 ID가 연결된다.
+- [ ] 로컬 모델 실행이 어려울 경우 대체 경로나 추상화 지점을 문서화한다.
+
+---
+
+## 에스컬레이션 기준
+
+다음 상황에서는 구현을 멈추고 Claude Code에 보고한다.
+
+- 새 모듈 경계 또는 패키지 구조 변경이 필요할 때
+- 시드 스키마 필드 추가·삭제가 필요할 때
+- 하이브리드 스코어링 가중치 기본값 결정이 필요할 때
+- 백엔드·프론트엔드 프레임워크 선택이 필요할 때
+- `docs/project-brief.md`와 요구사항이 충돌할 때
+- 문서와 코드 사이에 해소하기 어려운 불일치가 있을 때
+
+---
+
+## 참고 문서
+
+| 문서 | 용도 |
+|------|------|
+| [`docs/project-brief.md`](docs/project-brief.md) | 기획서 — 구현 판단의 최종 기준 |
+| [`docs/architecture.md`](docs/architecture.md) | 파이프라인 구조 및 모듈 경계 |
+| [`docs/agent-workflow.md`](docs/agent-workflow.md) | 작업 흐름 세부 지침 |
+| [`docs/data-policy.md`](docs/data-policy.md) | 시드 스키마 및 데이터 정책 |
+| [`docs/rag-evaluation.md`](docs/rag-evaluation.md) | 평가 기준 및 테스트 쿼리 |
