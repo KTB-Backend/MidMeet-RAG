@@ -1,3 +1,12 @@
+Metadata-Version: 2.4
+Name: midmeet-rag
+Version: 0.1.0
+Summary: RAG harness for meeting-place recommendations.
+Requires-Python: <3.12,>=3.11
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
 # MidMeet-RAG
 
 "어디서 만날래?"는 여러 사람의 출발 위치와 자연어 분위기 조건을 바탕으로 모임 장소를 추천하는 RAG 기반 사이드 프로젝트입니다.
@@ -40,9 +49,7 @@ seed data -> embedding -> Chroma storage -> hybrid scoring -> grounded recommend
 현재는 RAG 하네스의 최소 Python 패키지 구조와 pytest 설정만 있습니다. embedding model, Chroma, FastAPI 구현은 아직 없습니다.
 
 ```bash
-pyenv install -s 3.11.9
-pyenv local 3.11.9
-python -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
 python -m pytest
