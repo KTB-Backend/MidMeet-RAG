@@ -10,6 +10,15 @@
 - 추천 문장은 검색된 seed와 메타데이터에 근거해야 한다.
 - 생성 결과에 근거가 없는 주장은 넣지 않는다.
 
+위 규칙은 **프로덕션 시드 코퍼스**에 적용된다. 개발/평가용 합성 픽스처는 아래 예외를 따른다.
+
+## Development Fixtures (예외)
+
+- 합성 픽스처는 파이프라인·평가 부트스트랩 **개발/평가 전용**으로만 허용한다.
+- `source.type="fixture"`로 명시하고 `data/seeds/fixtures/`에 둔다.
+- **프로덕션 코퍼스로 승격하거나 사용자 추천 결과로 노출하지 않는다.**
+- 구분 정본 → [`data-design.md`](../design-docs/data-design.md) §10.
+
 ## Accepted Sources
 
 - Kakao Local API: 장소명, 주소, 좌표, 실시간 장소 검색.

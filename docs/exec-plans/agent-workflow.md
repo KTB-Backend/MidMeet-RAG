@@ -23,6 +23,6 @@
 
 - 문서화된 실행 명령이 있다.
 - 결정적 로직은 `pytest`로 검증된다.
-- retrieval 결과에 semantic, distance, final score가 보인다.
+- retrieval 결과에 atmosphere_score, distance_score, final_score가 보인다.
 - generation 결과에 근거 seed가 연결된다.
 - `.env`, Chroma index, 모델 가중치, 임시 산출물이 커밋되지 않는다.

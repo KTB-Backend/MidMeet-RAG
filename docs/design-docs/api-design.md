@@ -78,7 +78,9 @@ def recommend(
     Args:
         centroid: (latitude, longitude)
         atmosphere_query: 자연어 분위기 조건
-        top_k: 반환할 추천 수
+        top_k: 최종 표시 추천 수 (RECOMMEND_TOP_K, 기본 5).
+               내부 벡터 검색은 RETRIEVAL_TOP_K(기본 10)개를 가져와
+               스코어링한 뒤 상위 top_k개를 반환한다.
 
     Returns:
         final_score 내림차순으로 정렬된 추천 목록
@@ -116,7 +118,7 @@ Content-Type: application/json
 |------|------|------|------|
 | `locations` | string[] | ✅ | 출발지 텍스트 목록 (2개 이상 권장) |
 | `atmosphere_query` | string | ✅ | 자연어 분위기 조건 |
-| `top_k` | integer | ❌ | 추천 수 (기본값 5) |
+| `top_k` | integer | ❌ | 최종 표시 추천 수 (RECOMMEND_TOP_K, 기본값 5). 내부 검색 수는 RETRIEVAL_TOP_K(기본 10) |
 
 **응답 바디 후보**:
 
@@ -181,7 +183,7 @@ POST /api/v1/geocode
 | 코드 | HTTP 상태 | 설명 |
 |------|-----------|------|
 | `GEOCODING_FAILED` | 422 | 위치 텍스트를 좌표로 변환 실패 |
-| `NO_SEEDS_FOUND` | 404 | 중간지점 반경 내 시드 없음 |
+| `NO_SEEDS_FOUND` | 404 | 검색 결과가 0건 (컬렉션이 비었거나 검색 실패). **반경 밖이라는 이유로는 발생하지 않음** — 거리는 소프트 스코어링(score=0)으로만 반영 |
 | `INVALID_LOCATION_COUNT` | 422 | 위치 목록이 비어 있음 |
 | `LLM_GENERATION_FAILED` | 500 | 추천 이유 생성 실패 |
 | `INTERNAL_ERROR` | 500 | 기타 내부 오류 |
@@ -225,3 +227,4 @@ API 키는 환경변수 `KAKAO_REST_API_KEY`로 주입. 코드에 하드코딩 �
 | 날짜 | 내용 |
 |------|------|
 | 2026-05-28 | 초안 작성 (DRAFT). 프레임워크 TBD 상태로 Python 인터페이스 중심으로 정의. |
+| 2026-05-28 | 문서 정합: top_k를 RECOMMEND_TOP_K(표시)/RETRIEVAL_TOP_K(검색)로 구분, NO_SEEDS_FOUND 의미 명확화. |

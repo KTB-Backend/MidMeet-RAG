@@ -28,9 +28,20 @@
 | `address` | string | 주소 또는 행정구역 | 도로명 또는 지번 주소 |
 | `latitude` | float | 위도 | 한반도 범위: 33.0–38.9 |
 | `longitude` | float | 경도 | 한반도 범위: 124.6–131.9 |
-| `atmosphere_text` | string | 분위기 서술 텍스트 | 50자 이상, 검색 매칭 표현 포함 필수 |
+| `atmosphere_text` | string | 분위기 서술 텍스트 | 50자 이상 권장 (미만은 경고, 검색 매칭 표현 포함) |
 | `attributes` | object | 구조화 속성 | 아래 스키마 참고 |
 | `source` | object | 출처 정보 | 작성자·확인일 포함 필수 |
+
+> **좌표 유효 범위는 이 문서가 정본이다.** 위도 33.0–38.9 / 경도 124.6–131.9. `rag-design.md`·`evaluation.md`의 검증 기준은 이 값을 따른다.
+
+#### 검증 심각도 (하드 실패 vs 경고)
+
+인덱싱 검증(Layer 1)은 두 등급으로 나뉜다.
+
+| 등급 | 항목 | 동작 |
+|------|------|------|
+| **하드 실패 (인덱싱 거부)** | 필수 필드 누락, 좌표 범위 이탈, `source` 누락, `place_id` 중복 | 해당 레코드 인덱싱 중단·오류 보고 |
+| **경고 (인덱싱 진행)** | `atmosphere_text` 50자 미만 | 로그 경고만 남기고 인덱싱은 진행 |
 
 ### 2-2. attributes 스키마
 
@@ -54,13 +65,15 @@
 
 ```json
 {
-  "type": "hand_crafted | public_data",
+  "type": "hand_crafted | public_data | fixture",
   "author": "작성자 이름 또는 식별자",
   "verified_at": "YYYY-MM-DD",
   "reference": "참고한 공공데이터 URL 또는 현장 방문 메모",
   "notes": "기타 provenance 메모"
 }
 ```
+
+- `fixture`: 개발·평가 부트스트랩용 **합성 데이터**. 실재 장소가 아니므로 사용자 추천에 노출하거나 프로덕션 코퍼스로 쓰지 않는다. 자세한 구분은 §10 참고.
 
 ---
 
@@ -153,18 +166,34 @@ source_type, source_author, source_verified_at, source_reference, source_notes
 
 ---
 
-## 7. 데이터 파일 위치
+## 7. 데이터 파일 위치 및 전처리 흐름
 
 ```
-data/seeds/raw/          # 원본 시드 파일 (커밋됨)
+data/seeds/fixtures/     # 합성 픽스처 (개발·평가 전용, 커밋됨)
+  └── fixtures.json      # source.type="fixture" 레코드 5~10개
+
+data/seeds/raw/          # 실데이터 원본 시드 파일 (수제작, 커밋됨)
   ├── hongdae.json       # 홍대 상권 시드 (예시)
   └── gangnam.json       # 강남 상권 시드 (예시)
 
-data/seeds/processed/    # 임베딩 준비 완료 레코드 (커밋됨)
+data/seeds/processed/    # 검증·정규화 완료 레코드 = 인덱싱 입력 (커밋됨)
   └── venues.json        # 전체 정규화 레코드 (통합 파일 또는 상권별 분리)
 
 data/chroma/             # 로컬 Chroma 인덱스 (커밋 금지)
 ```
+
+### 전처리 흐름 (raw/fixtures → processed)
+
+인덱싱은 항상 `processed/`만 읽는다. `raw/`(실데이터)와 `fixtures/`(합성)는 **동일한 전처리 경로**를 거쳐 `processed/`로 들어간다.
+
+```
+raw/ 또는 fixtures/ (스키마 준수 JSON)
+   └─▶ 검증 (§2-1 검증 심각도)  +  정규화 (필드 정리·타입 통일)
+        └─▶ processed/  →  index_seeds.py  →  Chroma
+```
+
+- **데이터 형태 무관 원칙**: 파이프라인(임베딩→인덱싱→검색→스코어링→생성)은 데이터 출처를 모른다. 픽스처든 실데이터든 스키마만 맞으면 `processed/` 재생성 + 재인덱싱만으로 적용된다.
+- 따라서 실데이터 전환은 **코드 변경 없이 데이터 교체**로 끝난다. (자동 ETL은 MVP 범위가 아니며, 시드 작성 자체는 §9 정책에 따라 사람이 수행한다.)
 
 ---
 
@@ -187,3 +216,25 @@ data/chroma/             # 로컬 Chroma 인덱스 (커밋 금지)
 - 분위기 서술 텍스트는 실재 장소를 확인한 뒤 사람이 직접 작성하고 검수한다.
 
 상세 정책 → [`data-policy.md`](../references/data-policy.md)
+
+---
+
+## 10. 개발용 픽스처 vs 프로덕션 시드
+
+파이프라인을 "실데이터 확보 전에" 끝까지 돌려보기 위해 **합성 픽스처**를 사용한다. 데이터 정책(실재 장소·수제작·검수)은 *프로덕션 시드 코퍼스*에 적용되며, 개발용 픽스처는 그 예외다.
+
+| 구분 | 개발용 픽스처 | 프로덕션 시드 |
+|------|---------------|---------------|
+| 목적 | 파이프라인·평가 부트스트랩 | 실제 사용자 추천 |
+| `source.type` | `fixture` | `hand_crafted` / `public_data` |
+| 실재 장소 검증 | 불필요 (합성) | 필수 (현장/공공데이터 확인) |
+| 스키마 | 동일 (§2) | 동일 (§2) |
+| 위치 | `data/seeds/fixtures/` | `data/seeds/raw/` |
+| 사용자 추천 노출 | **금지** | 허용 |
+| 규모 | 5~10개 | 상권당 20~30개 |
+
+**원칙**:
+
+- 픽스처는 스키마·검증·인덱싱을 동일하게 통과하되, `source.type="fixture"`로 명시해 실데이터와 구분한다.
+- 픽스처는 사용자 추천 결과로 노출하지 않는다. 파이프라인 동작 검증·평가 fixture 용도로만 쓴다.
+- 파이프라인 안정화 후 프로덕션 시드를 `raw/`에 작성하면, 동일 전처리·인덱싱 경로(§7)로 교체된다.

@@ -48,7 +48,7 @@
                               [추천 결과 출력]
                                ├── 추천 이유 (자연어)
                                ├── 근거 시드 ID
-                               └── semantic / distance / final score
+                               └── atmosphere / distance / final score
                                            │
                                            ▼
                               [카카오맵 시각화 (TBD)]
@@ -79,8 +79,9 @@ tests/                # 결정적(deterministic) pytest 테스트. 모델·Chrom
 evals/                # 모델·Chroma 의존적인 검증 케이스. 고정 fixture 사용.
 
 data/
-  ├── seeds/raw/       # 수제작 시드 원본 (커밋됨)
-  ├── seeds/processed/ # 임베딩 준비 완료 레코드 (커밋됨)
+  ├── seeds/fixtures/  # 합성 픽스처 (개발·평가 전용, 커밋됨)
+  ├── seeds/raw/       # 실데이터 수제작 시드 원본 (커밋됨)
+  ├── seeds/processed/ # 검증·정규화 완료 = 인덱싱 입력 (커밋됨)
   └── chroma/          # 로컬 Chroma 인덱스 (커밋 금지)
 ```
 
@@ -225,7 +226,8 @@ class APIAdapter(GenerationAdapter):
 | Chroma 경로 | `CHROMA_PATH` | `data/chroma/` |
 | Chroma 컬렉션명 | `CHROMA_COLLECTION` | `venues` |
 | 카카오 API 키 | `KAKAO_REST_API_KEY` | — |
-| 검색 개수 k | `RETRIEVAL_TOP_K` | `10` |
+| 검색 개수 k (벡터 검색) | `RETRIEVAL_TOP_K` | `10` |
+| 추천 표시 개수 k (최종) | `RECOMMEND_TOP_K` | `5` |
 | 최대 거리 반경 (km) | `MAX_DISTANCE_KM` | `3.0` |
 | 분위기 가중치 α | `ATMOSPHERE_WEIGHT` | `0.7` |
 | 거리 가중치 (1-α) | (1 - `ATMOSPHERE_WEIGHT`) | `0.3` |

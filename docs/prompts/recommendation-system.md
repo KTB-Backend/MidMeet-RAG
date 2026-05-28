@@ -34,7 +34,7 @@
 - 사용자 질의.
 - 출발지 또는 중간지점 좌표.
 - 검색된 seed 목록.
-- semantic score, distance score, final score.
+- atmosphere_score, distance_score, final_score.
 - 각 seed의 provenance 또는 source note.
 
 ## Validation

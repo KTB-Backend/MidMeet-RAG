@@ -31,12 +31,15 @@
 
 인덱싱 전 각 레코드를 검증한다.
 
-| 검증 항목 | 기준 |
-|-----------|------|
-| 필수 필드 존재 | `place_id`, `name`, `address`, `latitude`, `longitude`, `atmosphere_text`, `attributes`, `source` |
-| 좌표 유효 범위 | 위도 33~39, 경도 124~132 (한반도 범위) |
-| `atmosphere_text` 최소 길이 | 50자 이상 권장 |
-| `source` 존재 | 출처 없는 시드는 인덱싱 거부 |
+| 검증 항목 | 기준 | 심각도 |
+|-----------|------|--------|
+| 필수 필드 존재 | `place_id`, `name`, `address`, `latitude`, `longitude`, `atmosphere_text`, `attributes`, `source` | 하드 실패 |
+| 좌표 유효 범위 | 위도 33.0–38.9, 경도 124.6–131.9 (정본: [`data-design.md`](data-design.md) §2-1) | 하드 실패 |
+| `place_id` 고유성 | 중복 ID 없음 | 하드 실패 |
+| `source` 존재 | 출처 없는 시드는 인덱싱 거부 | 하드 실패 |
+| `atmosphere_text` 최소 길이 | 50자 이상 권장 | 경고 (인덱싱 진행) |
+
+심각도 등급의 정본은 [`data-design.md`](data-design.md) §2-1이다.
 
 ### 2-3. 임베딩
 
@@ -44,6 +47,8 @@
 - 모델: `dragonkue/snowflake-arctic-embed-l-v2.0-ko` (교체 가능 추상화 필수).
 - 출력 차원: 1024-dim float vector.
 - 배치 처리로 시드 전체를 일괄 임베딩한다.
+
+> **노트 — query/passage 비대칭 인코딩**: arctic-embed 계열은 문서(passage)와 질의(query)에 서로 다른 instruction 프리픽스를 붙일 때 검색 품질이 올라갈 수 있다. 임베딩 어댑터(`embedder.py`)는 `embed(texts, mode="document"|"query")` 형태로 모드를 받을 여지를 둔다. 인덱싱은 document 모드, §3-1 질의는 query 모드. 모델별 프리픽스 적용 여부는 모델 카드를 따른다.
 
 ### 2-4. Chroma 저장
 
@@ -72,9 +77,11 @@ metadata  : {
 
 ### 3-2. Chroma 벡터 검색
 
-- `top_k` 개의 후보를 코사인 유사도 기준으로 검색한다.
+- `RETRIEVAL_TOP_K` 개의 후보를 코사인 유사도 기준으로 검색한다.
 - 검색 결과에는 각 후보의 `atmosphere_score`(코사인 유사도)와 메타데이터가 포함된다.
-- `top_k`는 환경변수 `RETRIEVAL_TOP_K`로 설정 (기본값 10).
+- 환경변수 `RETRIEVAL_TOP_K`로 설정 (기본값 10).
+
+> **두 개의 k 구분**: 검색 단계는 `RETRIEVAL_TOP_K`(기본 10)개를 가져오고, 최종 사용자에게 표시·생성하는 추천 수는 `RECOMMEND_TOP_K`(기본 5)다. 흐름은 **검색 10 → 하이브리드 스코어링 → 상위 5 표시**. 두 값을 혼동하지 않는다.
 
 ### 3-3. 하이브리드 스코어링
 
@@ -90,6 +97,8 @@ distance_score = max(0, 1 - distance_km / MAX_DISTANCE_KM)
 
 - `MAX_DISTANCE_KM`: 환경변수로 설정 (기본값 3.0km). 이 반경 밖은 distance_score = 0.
 - 중간지점과 각 시드 좌표 사이의 직선거리를 Haversine 공식으로 계산한다.
+
+> **소프트 스코어링 (하드 필터 아님)**: 반경 밖 시드도 결과에서 제외하지 않는다. `distance_score=0`으로 두고 가중합에 반영할 뿐이다. 따라서 분위기 매칭이 매우 높은 먼 시드는 여전히 순위에 오를 수 있다(거리-분위기 트레이드오프를 가중치로 조절하려는 의도적 설계). 반경 기반으로 후보를 잘라내지 않는다. `NO_SEEDS_FOUND`(api-design 에러)는 **검색 결과 자체가 0건**일 때만 발생하며, 반경 밖이라는 이유로는 발생하지 않는다.
 
 #### 가중합
 
