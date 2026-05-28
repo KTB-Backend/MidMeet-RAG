@@ -57,11 +57,12 @@ Claude Code는 **설계·검토·검증 전담**이다. 코드 구현은 Codex C
 |------|------|------|
 | `codex-task` 스킬 | `.claude/skills/codex-task/` | 위임 프롬프트 생성 (**위임 양식 정본**) |
 | `review-codex` 스킬 | `.claude/skills/review-codex/` | 두 리뷰어 병렬 검토·종합 (**리뷰 체크리스트 정본**) |
+| `wrap-up` 스킬 | `.claude/skills/wrap-up/` | 세션 종료 전 정본 대조 감사·협의·문서 최신화 |
 | `spec-reviewer` | `.claude/agents/spec-reviewer.md` | 기획·아키텍처 준수 검토 (읽기 전용) |
 | `rag-reviewer` | `.claude/agents/rag-reviewer.md` | RAG 정확성·신뢰성 검토 (읽기 전용) |
 | `role-guard` 훅 | `.claude/hooks/role-guard.py` | 구현 경로 수정 시 경고만 표시 (비차단) |
 
-**사용 흐름**: 설계 → `/codex-task` → 사용자가 Codex 실행 → `/review-codex` → `pytest`/`/verify`.
+**사용 흐름**: 설계 → `/codex-task` → 사용자가 Codex 실행 → `/review-codex` → `pytest`/`/verify` → (종료 시) `/wrap-up`.
 
 ---
 
