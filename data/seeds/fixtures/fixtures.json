@@ -1,0 +1,184 @@
+[
+  {
+    "place_id": "fx_001",
+    "name": "예시카페 조용한창가",
+    "address": "서울 마포구 홍대입구역 인근 합성 주소",
+    "latitude": 37.5572,
+    "longitude": 126.9247,
+    "atmosphere_text": "창가 좌석과 잔잔한 배경음악으로 조용히 대화하기 좋은 카페다. 좌석 간격이 넓어 2~4인 소그룹이나 업무 미팅에 적합하고, 밝은 자연광이 들어와 차분한 분위기를 만든다.",
+    "attributes": {
+      "category": "카페",
+      "parking": null,
+      "wifi": true,
+      "noise_level": "조용함",
+      "seating_type": ["개인석"],
+      "outdoor": false,
+      "reservation": null,
+      "price_range": "1인 7000-12000원",
+      "operating_hours": null
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  },
+  {
+    "place_id": "fx_002",
+    "name": "테스트식당 단체마루",
+    "address": "서울 마포구 합정역 인근 합성 주소",
+    "latitude": 37.5495,
+    "longitude": 126.9149,
+    "atmosphere_text": "넓은 단체석과 2인 테이블이 함께 있어 여러 명이 앉기 좋은 식당이다. 저녁 시간에는 적당한 활기가 있지만 소음은 보통 수준이라 회식 전 가벼운 식사나 친구 모임에 어울린다.",
+    "attributes": {
+      "category": "식당",
+      "parking": false,
+      "wifi": null,
+      "noise_level": "보통",
+      "seating_type": ["단체석", "개인석"],
+      "outdoor": false,
+      "reservation": true,
+      "price_range": "1인 12000-22000원",
+      "operating_hours": "17:00-22:00"
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  },
+  {
+    "place_id": "fx_003",
+    "name": "픽스처펍 역앞저녁",
+    "address": "서울 마포구 홍대입구역 출구 인근 합성 주소",
+    "latitude": 37.5560,
+    "longitude": 126.9231,
+    "atmosphere_text": "역에서 가까운 저녁 장소로 들르기 좋은 술집이다. 바 좌석과 단체석이 있어 짧은 만남부터 여러 명의 저녁 모임까지 대응하기 쉽고, 소음은 보통 수준이라 대화 흐름을 유지하기 좋다.",
+    "attributes": {
+      "category": "술집",
+      "parking": false,
+      "wifi": null,
+      "noise_level": "보통",
+      "seating_type": ["바 좌석", "단체석"],
+      "outdoor": null,
+      "reservation": true,
+      "price_range": "1인 15000-30000원",
+      "operating_hours": "18:00-24:00"
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  },
+  {
+    "place_id": "fx_004",
+    "name": "예시카페 활기찬홀",
+    "address": "서울 마포구 상수역 인근 합성 주소",
+    "latitude": 37.5478,
+    "longitude": 126.9225,
+    "atmosphere_text": "좌석이 촘촘하고 배경음악과 대화 소리가 크게 섞이는 활기찬 카페다. 단체 손님이 머물기 쉬운 넓은 홀 분위기이며, 조용한 대화보다는 밝고 시끄러운 만남에 더 어울린다.",
+    "attributes": {
+      "category": "카페",
+      "parking": null,
+      "wifi": true,
+      "noise_level": "시끄러움",
+      "seating_type": ["개인석", "단체석"],
+      "outdoor": false,
+      "reservation": false,
+      "price_range": "1인 6000-11000원",
+      "operating_hours": null
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  },
+  {
+    "place_id": "fx_005",
+    "name": "테스트분식 집중테이블",
+    "address": "서울 강남구 강남역 인근 합성 주소",
+    "latitude": 37.4979,
+    "longitude": 127.0276,
+    "atmosphere_text": "강남역 근처에서 빠른 저녁 식사를 하기 좋은 조용한 식당이다. 작은 테이블 위주라 혼자 방문하거나 2인이 대화하기 편하고, 음악과 주변 소리가 낮아 차분하게 머물 수 있다.",
+    "attributes": {
+      "category": "식당",
+      "parking": null,
+      "wifi": false,
+      "noise_level": "조용함",
+      "seating_type": ["개인석"],
+      "outdoor": false,
+      "reservation": false,
+      "price_range": "1인 8000-15000원",
+      "operating_hours": "11:00-21:00"
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  },
+  {
+    "place_id": "fx_006",
+    "name": "픽스처다이닝 강남모임",
+    "address": "서울 서초구 강남역 남쪽 합성 주소",
+    "latitude": 37.4918,
+    "longitude": 127.0294,
+    "atmosphere_text": "강남역에서 조금 떨어진 곳에 있는 단체 저녁 모임용 식당이다. 예약 가능한 단체석과 차분한 조명이 있고, 소음은 보통 수준이라 식사와 대화를 함께 하기 좋은 분위기다.",
+    "attributes": {
+      "category": "식당",
+      "parking": true,
+      "wifi": null,
+      "noise_level": "보통",
+      "seating_type": ["단체석"],
+      "outdoor": null,
+      "reservation": true,
+      "price_range": "1인 18000-35000원",
+      "operating_hours": "17:30-23:00"
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  },
+  {
+    "place_id": "fx_007",
+    "name": "예시카페 강남조용한방",
+    "address": "서울 강남구 역삼역 인근 합성 주소",
+    "latitude": 37.5009,
+    "longitude": 127.0364,
+    "atmosphere_text": "조용함과 대화하기 좋음이 두드러지는 강남권 카페다. 개인석 위주의 좌석 배치와 은은한 조명, 낮은 음악 소리 덕분에 2인 대화나 짧은 업무 미팅에 편안하다.",
+    "attributes": {
+      "category": "카페",
+      "parking": null,
+      "wifi": true,
+      "noise_level": "조용함",
+      "seating_type": ["개인석"],
+      "outdoor": null,
+      "reservation": null,
+      "price_range": "1인 7000-13000원",
+      "operating_hours": null
+    },
+    "source": {
+      "type": "fixture",
+      "author": "codex",
+      "verified_at": "2026-05-28",
+      "reference": "Synthetic fixture for S0-2 loader integration tests.",
+      "notes": "합성 개발/평가 전용 레코드이며 실재 장소가 아님. 사용자 추천 노출 금지."
+    }
+  }
+]
