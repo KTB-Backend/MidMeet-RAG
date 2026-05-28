@@ -11,11 +11,32 @@
 | 마일스톤 | 내용 | 상태 |
 |----------|------|------|
 | M0 | 기반 설계 확정 | ✅ 완료 |
-| M1 | 시드 데이터 준비 (픽스처 먼저 → 실데이터 나중) | ⬜ 대기 |
-| M2 | RAG 파이프라인 구현 (픽스처로 검증) | ⬜ 대기 |
+| M1 | 시드 데이터 준비 (픽스처 먼저 → 실데이터 나중) | 🟡 진행 중 — 픽스처(M1-0)·검증(M1-3) 완료, 실데이터 대기 |
+| M2 | RAG 파이프라인 구현 (픽스처로 검증) | 🟡 진행 중 — S2 임베딩 위임됨 |
 | M3 | 평가 하네스 | ⬜ 대기 |
 | M4 | 지도 UI 연동 | ⬜ TBD |
 | M5 | 모델 튜닝 및 상권 확장 | ⬜ TBD |
+
+---
+
+## 진행 현황 — S0~S8 위임 체크리스트
+
+> 위임 단위(S0~S8)는 [`rag-design.md`](../design-docs/rag-design.md) §7 순서 기반. **실제 실행 순서**: S0 → S2 → S3 → S4 → S5(+centroid) → S6 → S7 → S1(geocode) → S8. **S1(카카오 geocode)은 외부 API·네트워크 의존이라 전체 하네스(S8) 직전으로 미룬다.** centroid 수학은 거리 스코어링(S5)에 묶는다.
+> **실행 위치**: 임베딩·인덱싱은 **로컬**에서 수행한다. Chroma 인덱스는 로컬 재생성 산출물(전송 대상 아님). Colab/API는 생성 모델(S7) 폴백으로만 고려.
+> **환경**: Python 3.11.9 venv(`.python-version`) + `pip install -e ".[dev]"`. 테스트는 이 venv에서 `python -m pytest`.
+
+| 단계 | 내용 | 대상 파일 | 매핑 | 상태 |
+|------|------|-----------|------|------|
+| S0-1 | 시드 스키마+로더+Layer1 검증+단위테스트 | `packages/rag_core/loader.py`, `tests/test_seed_validation.py` | M1-3 | ✅ 완료 (place_id 패치 포함, 리뷰 통과) |
+| S0-2 | 합성 픽스처 7개 + 통합 테스트 | `data/seeds/fixtures/fixtures.json`, `tests/test_fixtures.py` | M1-0 | ✅ 완료 (리뷰 통과, 로컬 13 passed) |
+| S2 | 임베딩 어댑터(추상화+Snowflake) | `packages/rag_core/embedder.py` | M2-2 | 🟡 위임 프롬프트 발행, 구현 대기 |
+| S3 | Chroma 인덱싱 | `packages/rag_core/indexer.py`, `scripts/index_seeds.py` | M2-3 | ⬜ 대기 |
+| S4 | 쿼리 검색(top-k) | `packages/rag_core/retriever.py` | M2-4 | ⬜ 대기 |
+| S5 | 거리 정규화+하이브리드 스코어링(+centroid) | `packages/rag_core/scorer.py`, `packages/rag_core/geo.py` | M2-5 | ⬜ 대기 |
+| S6 | 근거 기반 프롬프트 조립 | `packages/rag_core/assembler.py` | M2-6 | ⬜ 대기 |
+| S7 | 생성 어댑터(추상화+Qwen3) | `packages/rag_core/generator.py` | M2-7 | ⬜ 대기 |
+| S1 | 카카오 geocode (+centroid가 S5에 없으면 여기) | `scripts/kakao_client.py`, `packages/rag_core/geo.py` | M2-1 | ⬜ 대기 (S8 직전) |
+| S8 | 전체 하네스 | `scripts/query_harness.py` | M2-8 | ⬜ 대기 |
 
 ---
 
@@ -41,7 +62,7 @@
 
 > **전략: 픽스처 먼저, 실데이터 나중.** 합성 픽스처(M1-0)로 파이프라인(M2)을 끝까지 돌려 검증한 뒤, 실데이터 수제작 시드(M1-1·M1-2)를 작성해 동일 경로로 교체한다. 픽스처와 실데이터의 구분 정본은 [`data-design.md`](../design-docs/data-design.md) §10이다.
 
-### M1-0. 합성 픽스처 작성 (파이프라인 부트스트랩)
+### M1-0. 합성 픽스처 작성 (파이프라인 부트스트랩) ✅ 완료 (S0-2)
 
 | 항목 | 내용 |
 |------|------|
@@ -67,7 +88,7 @@
 | **기준** | `docs/design-docs/data-design.md`의 스키마와 atmosphere_text 작성 기준 준수 |
 | **완료 조건** | `data/seeds/raw/` 에 JSON 파일 저장, 필드 전체 작성, atmosphere_text 50자 이상 권장 |
 
-### M1-3. 시드 검증
+### M1-3. 시드 검증 ✅ 완료 (S0-1)
 
 | 항목 | 내용 |
 |------|------|
@@ -92,7 +113,7 @@
 | **대상 파일** | `packages/rag_core/geo.py` (또는 `scripts/kakao_client.py`) |
 | **완료 조건** | `pytest tests/test_geo.py` 통과, centroid 수학 검증 포함 |
 
-### M2-2. 임베딩 어댑터
+### M2-2. 임베딩 어댑터 🟡 진행 (S2, 위임됨)
 
 | 항목 | 내용 |
 |------|------|
@@ -196,7 +217,7 @@
 
 ## 다음 즉시 할 일
 
-1. **S0 시드 로더·검증 + M1-0 합성 픽스처 5~10개** (Codex CLI, `data/seeds/fixtures/`)
-2. **M2 파이프라인 단계별 위임 (S1~S8)** — 임베딩→인덱싱→검색→스코어링→프롬프트→생성→전체 하네스. 이전 단계 안정화 후 진행
-3. **파이프라인 안정화 후 실데이터 전환**: M1-1 상권 선정 → M1-2 실데이터 시드 20–30개 작성 → 재인덱싱
-   - Codex 구현 프롬프트는 단계별로 요청 시 Claude Code가 `/codex-task`로 작성
+1. ✅ **S0 완료** — 로더·검증(S0-1, place_id 패치 포함) + 합성 픽스처 7개(S0-2). 리뷰 통과, 로컬 `python -m pytest` 13 passed.
+2. **▶ 다음: S2 임베딩 어댑터** — `/codex-task` 위임 프롬프트 발행됨 → Codex 실행 → `/review-codex`. 이후 **S3 인덱싱 → S4 검색 → S5 스코어링(+centroid) → S6 프롬프트 → S7 생성 → S1 카카오 geocode → S8 전체 하네스** 순서로 진행. 이전 단계 안정화 후 다음으로.
+3. **파이프라인 안정화 후 실데이터 전환**: M1-1 상권 선정 → M1-2 실데이터 시드 20–30개 작성(`data/seeds/raw/`) → 재인덱싱.
+   - Codex 구현 프롬프트는 단계별로 요청 시 Claude Code가 `/codex-task`로 작성.

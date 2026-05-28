@@ -65,6 +65,7 @@ packages/rag_core/    # 핵심 RAG 로직. API·UI 의존성 없음.
   ├── indexer.py      # Chroma 인덱싱
   ├── retriever.py    # 쿼리 검색·하이브리드 스코어링
   ├── scorer.py       # 거리 정규화·가중합 계산
+  ├── geo.py          # 좌표·중간지점 (centroid·Haversine 거리)
   ├── assembler.py    # 근거 기반 프롬프트 조립
   └── generator.py   # 생성 어댑터 (교체 가능 추상화)
 
@@ -122,6 +123,8 @@ Collection: venues  (이름은 환경변수로 설정 가능)
 **경로**: 환경변수 `CHROMA_PATH`로 주입. 기본값 `data/chroma/`. 커밋 금지.
 
 **인덱싱 시점**: `scripts/index_seeds.py`를 실행할 때마다 `data/seeds/processed/`의 레코드를 읽어 Chroma에 저장한다.
+
+**실행 위치**: 임베딩·인덱싱은 로컬에서 수행한다. Chroma 인덱스는 시드에서 파생되는 재생성 산출물이므로 머신 간 전송 대상이 아니다(쿼리가 도는 곳에서 재인덱싱). 무거운 생성 모델만 필요 시 Colab/API로 분리한다.
 
 ---
 

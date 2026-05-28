@@ -36,6 +36,7 @@
 | 필수 필드 존재 | `place_id`, `name`, `address`, `latitude`, `longitude`, `atmosphere_text`, `attributes`, `source` | 하드 실패 |
 | 좌표 유효 범위 | 위도 33.0–38.9, 경도 124.6–131.9 (정본: [`data-design.md`](data-design.md) §2-1) | 하드 실패 |
 | `place_id` 고유성 | 중복 ID 없음 | 하드 실패 |
+| `place_id` 타입 | 문자열이어야 함 | 하드 실패 |
 | `source` 존재 | 출처 없는 시드는 인덱싱 거부 | 하드 실패 |
 | `atmosphere_text` 최소 길이 | 50자 이상 권장 | 경고 (인덱싱 진행) |
 
