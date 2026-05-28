@@ -79,9 +79,9 @@
 
 ## 완료 조건
 
-- 관련 pytest 통과(`python -m pytest`). 실행 방법 문서화.
+- 관련 pytest 통과. **테스트는 Python 3.11 venv(`.python-version`=3.11.9)에서 `pip install -e ".[dev]"` 후 `python -m pytest`로 실행한다.** 시스템 python3·일회성 임시 venv로 우회하거나 pytest를 즉석 설치하지 않는다. 3.11을 쓸 수 없는 환경이면 사용한 Python 버전을 보고한다. 구현 후 자체 실행해 **실행 명령·Python 버전·통과 결과**를 보고한다. (최종 권위 검증은 로컬 프로젝트 `.venv` 3.11.9에서 수행됨.)
 - 변경 파일·이유 요약. `project-brief.md` 충돌 없음. 미확정은 `TBD`.
-- 검색 결과에 semantic·distance·final score 포함. 생성 결과에 근거 시드 ID 연결.
+- 검색 결과에 atmosphere·distance·final score 포함. 생성 결과에 근거 시드 ID 연결.
 - 로컬 모델 실행 곤란 시 대체 경로·추상화 지점 문서화.
 - 상세 평가 기준 → `docs/references/evaluation.md`.
 
