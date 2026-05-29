@@ -17,6 +17,9 @@ dev = [
 embeddings = [
     "sentence-transformers>=3.0",
 ]
+vectorstore = [
+    "chromadb>=0.5",
+]
 
 [tool.setuptools.packages.find]
 where = ["packages"]

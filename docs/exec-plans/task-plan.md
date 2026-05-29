@@ -12,7 +12,7 @@
 |----------|------|------|
 | M0 | 기반 설계 확정 | ✅ 완료 |
 | M1 | 시드 데이터 준비 (픽스처 먼저 → 실데이터 나중) | 🟡 진행 중 — 픽스처(M1-0)·검증(M1-3) 완료, 실데이터 대기 |
-| M2 | RAG 파이프라인 구현 (픽스처로 검증) | 🟡 진행 중 — S2 임베딩 완료(리뷰 통과), S3 대기 |
+| M2 | RAG 파이프라인 구현 (픽스처로 검증) | 🟡 진행 중 — S3 인덱싱 완료(리뷰 통과), S4 대기 |
 | M3 | 평가 하네스 | ⬜ 대기 |
 | M4 | 지도 UI 연동 | ⬜ TBD |
 | M5 | 모델 튜닝 및 상권 확장 | ⬜ TBD |
@@ -30,7 +30,7 @@
 | S0-1 | 시드 스키마+로더+Layer1 검증+단위테스트 | `packages/rag_core/loader.py`, `tests/test_seed_validation.py` | M1-3 | ✅ 완료 (place_id 패치 포함, 리뷰 통과) |
 | S0-2 | 합성 픽스처 7개 + 통합 테스트 | `data/seeds/fixtures/fixtures.json`, `tests/test_fixtures.py` | M1-0 | ✅ 완료 (리뷰 통과, 로컬 13 passed) |
 | S2 | 임베딩 어댑터(추상화+Snowflake) | `packages/rag_core/embedder.py` | M2-2 | ✅ 완료 (query/doc 프리픽스·lazy import·extra 분리, 리뷰 통과, 로컬 18 passed) |
-| S3 | Chroma 인덱싱 | `packages/rag_core/indexer.py`, `scripts/index_seeds.py` | M2-3 | ⬜ 대기 |
+| S3 | Chroma 인덱싱 | `packages/rag_core/indexer.py`, `scripts/index_seeds.py` | M2-3 | ✅ 완료 (cosine 강제·HNSW 노브 노출·재인덱싱 가드·upsert, 리뷰 통과, 로컬 25 passed + chromadb 스모크) |
 | S4 | 쿼리 검색(top-k) | `packages/rag_core/retriever.py` | M2-4 | ⬜ 대기 |
 | S5 | 거리 정규화+하이브리드 스코어링(+centroid) | `packages/rag_core/scorer.py`, `packages/rag_core/geo.py` | M2-5 | ⬜ 대기 |
 | S6 | 근거 기반 프롬프트 조립 | `packages/rag_core/assembler.py` | M2-6 | ⬜ 대기 |
@@ -122,7 +122,7 @@
 | **대상 파일** | `packages/rag_core/embedder.py` |
 | **완료 조건** | 텍스트 리스트 → float 벡터 리스트 변환 동작 확인, 단위 테스트 통과 |
 
-### M2-3. Chroma 인덱싱
+### M2-3. Chroma 인덱싱 ✅ 완료 (S3, 리뷰 통과)
 
 | 항목 | 내용 |
 |------|------|
@@ -220,6 +220,7 @@
 
 1. ✅ **S0 완료** — 로더·검증(S0-1, place_id 패치 포함) + 합성 픽스처 7개(S0-2). 리뷰 통과, 로컬 `python -m pytest` 13 passed.
 2. ✅ **S2 완료** — 임베딩 어댑터(`EmbeddingAdapter` ABC + `SnowflakeArcticEmbedAdapter`). query/document 프리픽스(query에만 `"query: "`), sentence-transformers는 `embeddings` extra+lazy import, tests는 모델 비의존(`FakeEmbeddingAdapter`)·evals 스모크 분리. 리뷰 통과, 로컬 18 passed. 정본 문서(architecture §6, rag-design §5-1·§2-3) `mode` 시그니처 동기화 완료.
-3. **▶ 다음: S3 Chroma 인덱싱** — `packages/rag_core/indexer.py`, `scripts/index_seeds.py`. 이후 **S4 검색 → S5 스코어링(+centroid) → S6 프롬프트 → S7 생성 → S1 카카오 geocode → S8 전체 하네스** 순서로 진행. 이전 단계 안정화 후 다음으로.
-4. **파이프라인 안정화 후 실데이터 전환**: M1-1 상권 선정 → M1-2 실데이터 시드 20–30개 작성(`data/seeds/raw/`) → 재인덱싱.
+3. ✅ **S3 완료** — Chroma 인덱싱(`indexer.py`, `scripts/index_seeds.py`). cosine 공간 강제, HNSW 파라미터 환경변수 노출(튜닝 M5 보류), 재인덱싱 모델 가드(컬렉션 메타에 모델명·차원), 동일 place_id upsert. chromadb는 indexer.py에 lazy import로 격리(VectorStore 추상화 없이 모듈 경계). 리뷰 통과, 로컬 25 passed + `pytest evals` 스모크 통과. 부트스트랩 `python -m scripts.index_seeds --seed-dir data/seeds/fixtures` → 7건 인덱싱.
+4. **▶ 다음: S4 쿼리 검색** — `packages/rag_core/retriever.py`. query 모드 임베딩 → Chroma top-k(`RETRIEVAL_TOP_K`) → `atmosphere_score = 1 − cosine distance` 변환(rag-design §3-2). 이후 **S5 스코어링(+centroid) → S6 프롬프트 → S7 생성 → S1 카카오 geocode → S8 전체 하네스**. 이전 단계 안정화 후 다음으로.
+5. **파이프라인 안정화 후 실데이터 전환**: M1-1 상권 선정 → M1-2 실데이터 시드 20–30개 작성(`data/seeds/raw/`) → 재인덱싱.
    - Codex 구현 프롬프트는 단계별로 요청 시 Claude Code가 `/codex-task`로 작성.

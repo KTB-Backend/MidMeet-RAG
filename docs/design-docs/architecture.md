@@ -124,6 +124,14 @@ Collection: venues  (이름은 환경변수로 설정 가능)
 
 **인덱싱 시점**: `scripts/index_seeds.py`를 실행할 때마다 `data/seeds/processed/`의 레코드를 읽어 Chroma에 저장한다.
 
+**거리 공간**: `cosine`. `atmosphere_score`가 코사인 유사도(rag-design §3-2)이므로 컬렉션을 cosine 공간으로 생성한다. 거리 공간은 컬렉션 생성 시 1회 고정(이후 변경 불가). 환경변수 `CHROMA_DISTANCE_SPACE`(기본 `cosine`).
+
+**ANN 인덱스**: Chroma는 HNSW를 자동 사용한다(별도 구현·brute-force 전환 없음). 튜닝 노브(`max_neighbors`=M, `ef_construction`, `ef_search`)는 환경변수로 노출하되 **미설정 시 Chroma 기본값**을 쓴다. 실제 값 튜닝은 평가 하네스(M3)·실데이터 확보 후 M5로 보류. 설정 정본 → §12.
+
+**임베딩 주입**: Chroma 자체 `embedding_function`을 쓰지 않는다. `EmbeddingAdapter`(§6)로 계산한 벡터를 `embeddings=`로 직접 넣는다(모델 교체 가능성·동일 모델 원칙을 우리가 통제). 컬렉션 메타데이터에 가드 키 `embedding_model`·`embedding_dimension`·`distance_space`를 기록해 재인덱싱 시 모델·차원 불일치를 막는다(rag-design §3-1). 구버전 chromadb(`configuration=` 미지원)는 레거시 `hnsw:space` 메타데이터로 폴백한다.
+
+**벡터 DB 교체**: Chroma는 확정 선택(§13 TBD 아님). 별도 교체 추상화 계층(VectorStore)을 두지 않고, Chroma 의존 코드를 `indexer.py`(쓰기)·`retriever.py`(읽기) 두 모듈에만 가두는 **모듈 경계**로 교체 가능성을 확보한다. DB 교체가 실제 목표가 되면 그때 두 구현체를 일반화해 인터페이스를 추출한다.
+
 **실행 위치**: 임베딩·인덱싱은 로컬에서 수행한다. Chroma 인덱스는 시드에서 파생되는 재생성 산출물이므로 머신 간 전송 대상이 아니다(쿼리가 도는 곳에서 재인덱싱). 무거운 생성 모델만 필요 시 Colab/API로 분리한다.
 
 ---
@@ -229,6 +237,10 @@ class APIAdapter(GenerationAdapter):
 | 생성 LLM명 | `GENERATION_MODEL_NAME` | `Qwen/Qwen3-4B-Instruct-2507` |
 | Chroma 경로 | `CHROMA_PATH` | `data/chroma/` |
 | Chroma 컬렉션명 | `CHROMA_COLLECTION` | `venues` |
+| Chroma 거리 공간 | `CHROMA_DISTANCE_SPACE` | `cosine` (고정 — `atmosphere_score` 코사인 정합. cosine 외 값은 거부, 자유 변경 불가) |
+| HNSW ef_construction | `CHROMA_HNSW_EF_CONSTRUCTION` | 미설정 시 Chroma 기본값 (튜닝 M5 보류) |
+| HNSW max_neighbors (M) | `CHROMA_HNSW_MAX_NEIGHBORS` | 미설정 시 Chroma 기본값 (튜닝 M5 보류) |
+| HNSW ef_search | `CHROMA_HNSW_EF_SEARCH` | 미설정 시 Chroma 기본값 (튜닝 M5 보류) |
 | 카카오 API 키 | `KAKAO_REST_API_KEY` | — |
 | 검색 개수 k (벡터 검색) | `RETRIEVAL_TOP_K` | `10` |
 | 추천 표시 개수 k (최종) | `RECOMMEND_TOP_K` | `5` |

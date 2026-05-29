@@ -66,6 +66,8 @@ metadata  : {
 
 - Chroma 컬렉션 이름과 경로는 환경변수로 주입한다.
 - 재인덱싱 시 동일 `place_id`는 업데이트하고 새 레코드는 추가한다.
+- 거리 공간은 **cosine**(§3-2 `atmosphere_score`와 정합). HNSW는 Chroma 자동, 파라미터는 환경변수로 노출하되 튜닝은 M5 보류. 설정 정본 → [`architecture.md`](architecture.md) §5·§12.
+- Chroma 자체 임베딩 함수를 쓰지 않고 `EmbeddingAdapter`로 계산한 벡터를 직접 저장한다. 컬렉션 메타데이터에 임베딩 모델명·차원을 기록해 재인덱싱 시 모델 일치를 가드한다(§3-1).
 
 ---
 
@@ -80,6 +82,7 @@ metadata  : {
 
 - `RETRIEVAL_TOP_K` 개의 후보를 코사인 유사도 기준으로 검색한다.
 - 검색 결과에는 각 후보의 `atmosphere_score`(코사인 유사도)와 메타데이터가 포함된다.
+  - **구현 주의 (S4)**: 컬렉션은 cosine **거리** 공간이므로 Chroma는 `distance`(=1−유사도)를 반환한다. `atmosphere_score = 1 − distance`로 변환해 0–1 유사도로 만든다.
 - 환경변수 `RETRIEVAL_TOP_K`로 설정 (기본값 10).
 
 > **두 개의 k 구분**: 검색 단계는 `RETRIEVAL_TOP_K`(기본 10)개를 가져오고, 최종 사용자에게 표시·생성하는 추천 수는 `RECOMMEND_TOP_K`(기본 5)다. 흐름은 **검색 10 → 하이브리드 스코어링 → 상위 5 표시**. 두 값을 혼동하지 않는다.

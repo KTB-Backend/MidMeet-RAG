@@ -72,17 +72,24 @@ Claude Code는 **설계·검토·검증 전담**이다. 코드 구현은 Codex C
 # 환경 설정 (Python 3.11 필수 — .python-version 참고)
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev]"                       # 기본 (결정적 테스트용)
+# 무거운 의존성은 선택적 extra (필요 시):
+#   embeddings  = sentence-transformers (실모델 임베딩)
+#   vectorstore = chromadb (인덱싱·검색)
+python -m pip install -e ".[dev,embeddings,vectorstore]" # 실모델·Chroma 실행/스모크용
 
-# 테스트 실행
+# 테스트 실행 (tests/ = 모델·Chroma 비의존 결정적 테스트)
 python -m pytest
 
 # 단일 테스트 실행
 python -m pytest tests/test_package_import.py::test_rag_core_package_importable
 
-# 하네스 명령 (파이프라인 구현 후 활성화)
-python -m scripts.index_seeds   # TODO
-python -m scripts.query_harness # TODO
+# 모델·Chroma 의존 스모크 (evals/ — 기본 pytest는 tests/만 수집하므로 별도 실행)
+python -m pytest evals          # 인덱싱·임베딩 변경 후 회귀 확인 권장. extra 필요
+
+# 하네스 명령
+python -m scripts.index_seeds --seed-dir data/seeds/fixtures  # 시드 인덱싱 (S3, 구현됨)
+python -m scripts.query_harness # TODO (S8)
 ```
 
 ---
