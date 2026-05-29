@@ -184,7 +184,7 @@ data/chroma/             # 로컬 Chroma 인덱스 (커밋 금지)
 
 ### 전처리 흐름 (raw/fixtures → processed)
 
-인덱싱은 항상 `processed/`만 읽는다. `raw/`(실데이터)와 `fixtures/`(합성)는 **동일한 전처리 경로**를 거쳐 `processed/`로 들어간다.
+인덱싱 진입점(`scripts/index_seeds.py`)은 `--seed-dir`로 입력 디렉터리를 받는다(기본 `processed/`). 정상 흐름에서 인덱싱은 `processed/`를 읽고, `raw/`(실데이터)와 `fixtures/`(합성)는 **동일한 전처리 경로**를 거쳐 `processed/`로 들어간다. 다만 파이프라인 부트스트랩 동안에는 `processed/` 정규화가 아직 자동화되지 않아 `--seed-dir data/seeds/fixtures`로 `fixtures/`를 직접 인덱싱한다(자동 ETL은 MVP 범위 아님 — 아래 참조).
 
 ```
 raw/ 또는 fixtures/ (스키마 준수 JSON)
