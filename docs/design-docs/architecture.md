@@ -136,17 +136,18 @@ Collection: venues  (이름은 환경변수로 설정 가능)
 # packages/rag_core/embedder.py
 
 class EmbeddingAdapter(ABC):
-    def embed(self, texts: list[str]) -> list[list[float]]:
+    def embed(self, texts: list[str], mode: str = "document") -> list[list[float]]:
         ...
 
 class SnowflakeArcticEmbedAdapter(EmbeddingAdapter):
     """dragonkue/snowflake-arctic-embed-l-v2.0-ko"""
-    def __init__(self, model_name: str): ...
-    def embed(self, texts: list[str]) -> list[list[float]]: ...
+    def __init__(self, model_name: str | None = None): ...
+    def embed(self, texts: list[str], mode: str = "document") -> list[list[float]]: ...
 ```
 
 **설정**: 환경변수 `EMBEDDING_MODEL_NAME`으로 모델 이름 주입.
 **현재 기본값**: `dragonkue/snowflake-arctic-embed-l-v2.0-ko`
+**mode**: 인덱싱은 `document`, 질의는 `query`. query 모드에만 `"query: "` 프리픽스를 붙인다(모델 카드 기준). 상세 → [`rag-design.md`](rag-design.md) §2-3.
 
 ---
 

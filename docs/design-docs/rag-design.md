@@ -49,7 +49,7 @@
 - 출력 차원: 1024-dim float vector.
 - 배치 처리로 시드 전체를 일괄 임베딩한다.
 
-> **노트 — query/passage 비대칭 인코딩**: arctic-embed 계열은 문서(passage)와 질의(query)에 서로 다른 instruction 프리픽스를 붙일 때 검색 품질이 올라갈 수 있다. 임베딩 어댑터(`embedder.py`)는 `embed(texts, mode="document"|"query")` 형태로 모드를 받을 여지를 둔다. 인덱싱은 document 모드, §3-1 질의는 query 모드. 모델별 프리픽스 적용 여부는 모델 카드를 따른다.
+> **노트 — query/passage 비대칭 인코딩**: arctic-embed 계열은 문서(passage)와 질의(query)에 서로 다른 instruction 프리픽스를 붙일 때 검색 품질이 올라갈 수 있다. 임베딩 어댑터(`embedder.py`)는 `embed(texts, mode="document"|"query")` 형태로 모드를 받는다(S2에서 확정). 인덱싱은 document 모드, §3-1 질의는 query 모드. 모델별 프리픽스 적용 여부는 모델 카드를 따른다.
 
 ### 2-4. Chroma 저장
 
@@ -159,7 +159,7 @@ final_score = α × atmosphere_score + (1 - α) × distance_score
 
 ```python
 class EmbeddingAdapter(ABC):
-    def embed(self, texts: list[str]) -> list[list[float]]: ...
+    def embed(self, texts: list[str], mode: str = "document") -> list[list[float]]: ...
 
 # 현재 구현체
 class SnowflakeArcticEmbedAdapter(EmbeddingAdapter): ...

@@ -12,7 +12,7 @@
 |----------|------|------|
 | M0 | 기반 설계 확정 | ✅ 완료 |
 | M1 | 시드 데이터 준비 (픽스처 먼저 → 실데이터 나중) | 🟡 진행 중 — 픽스처(M1-0)·검증(M1-3) 완료, 실데이터 대기 |
-| M2 | RAG 파이프라인 구현 (픽스처로 검증) | 🟡 진행 중 — S2 임베딩 위임됨 |
+| M2 | RAG 파이프라인 구현 (픽스처로 검증) | 🟡 진행 중 — S2 임베딩 완료(리뷰 통과), S3 대기 |
 | M3 | 평가 하네스 | ⬜ 대기 |
 | M4 | 지도 UI 연동 | ⬜ TBD |
 | M5 | 모델 튜닝 및 상권 확장 | ⬜ TBD |
@@ -29,7 +29,7 @@
 |------|------|-----------|------|------|
 | S0-1 | 시드 스키마+로더+Layer1 검증+단위테스트 | `packages/rag_core/loader.py`, `tests/test_seed_validation.py` | M1-3 | ✅ 완료 (place_id 패치 포함, 리뷰 통과) |
 | S0-2 | 합성 픽스처 7개 + 통합 테스트 | `data/seeds/fixtures/fixtures.json`, `tests/test_fixtures.py` | M1-0 | ✅ 완료 (리뷰 통과, 로컬 13 passed) |
-| S2 | 임베딩 어댑터(추상화+Snowflake) | `packages/rag_core/embedder.py` | M2-2 | 🟡 위임 프롬프트 발행, 구현 대기 |
+| S2 | 임베딩 어댑터(추상화+Snowflake) | `packages/rag_core/embedder.py` | M2-2 | ✅ 완료 (query/doc 프리픽스·lazy import·extra 분리, 리뷰 통과, 로컬 18 passed) |
 | S3 | Chroma 인덱싱 | `packages/rag_core/indexer.py`, `scripts/index_seeds.py` | M2-3 | ⬜ 대기 |
 | S4 | 쿼리 검색(top-k) | `packages/rag_core/retriever.py` | M2-4 | ⬜ 대기 |
 | S5 | 거리 정규화+하이브리드 스코어링(+centroid) | `packages/rag_core/scorer.py`, `packages/rag_core/geo.py` | M2-5 | ⬜ 대기 |
@@ -113,7 +113,7 @@
 | **대상 파일** | `packages/rag_core/geo.py` (또는 `scripts/kakao_client.py`) |
 | **완료 조건** | `pytest tests/test_geo.py` 통과, centroid 수학 검증 포함 |
 
-### M2-2. 임베딩 어댑터 🟡 진행 (S2, 위임됨)
+### M2-2. 임베딩 어댑터 ✅ 완료 (S2, 리뷰 통과)
 
 | 항목 | 내용 |
 |------|------|
@@ -212,12 +212,14 @@
 | 가중치 튜닝 | Claude Code (설계) + Codex CLI (실험) | α 값 변화에 따른 추천 품질 변화 확인 |
 | 생성 LLM 비교 | Claude Code (기준) + Codex CLI (구현) | Qwen3-4B vs Gemma 3 4B 등 |
 | 상권 확장 | 수동 (시드 작성) + Codex CLI (인덱싱) | 홍대 → 강남 → 성수 등으로 확장 |
+| 구조화 속성 순위 반영 (보류) | Claude Code (설계) + Codex CLI (구현) | wifi·주차 등 속성을 순위에 반영할지 결정: 메타데이터 필터 vs 가중합 속성항(`final = α·분위기 + β·거리 + γ·속성`) vs 현행(생성 컨텍스트만). 자연어 요구("주차 되는 조용한 카페") 처리와 연결. **project-brief 수정 필요 → 임베딩에 넣지 않음.** S2 검토 중 도출 |
 
 ---
 
 ## 다음 즉시 할 일
 
 1. ✅ **S0 완료** — 로더·검증(S0-1, place_id 패치 포함) + 합성 픽스처 7개(S0-2). 리뷰 통과, 로컬 `python -m pytest` 13 passed.
-2. **▶ 다음: S2 임베딩 어댑터** — `/codex-task` 위임 프롬프트 발행됨 → Codex 실행 → `/review-codex`. 이후 **S3 인덱싱 → S4 검색 → S5 스코어링(+centroid) → S6 프롬프트 → S7 생성 → S1 카카오 geocode → S8 전체 하네스** 순서로 진행. 이전 단계 안정화 후 다음으로.
-3. **파이프라인 안정화 후 실데이터 전환**: M1-1 상권 선정 → M1-2 실데이터 시드 20–30개 작성(`data/seeds/raw/`) → 재인덱싱.
+2. ✅ **S2 완료** — 임베딩 어댑터(`EmbeddingAdapter` ABC + `SnowflakeArcticEmbedAdapter`). query/document 프리픽스(query에만 `"query: "`), sentence-transformers는 `embeddings` extra+lazy import, tests는 모델 비의존(`FakeEmbeddingAdapter`)·evals 스모크 분리. 리뷰 통과, 로컬 18 passed. 정본 문서(architecture §6, rag-design §5-1·§2-3) `mode` 시그니처 동기화 완료.
+3. **▶ 다음: S3 Chroma 인덱싱** — `packages/rag_core/indexer.py`, `scripts/index_seeds.py`. 이후 **S4 검색 → S5 스코어링(+centroid) → S6 프롬프트 → S7 생성 → S1 카카오 geocode → S8 전체 하네스** 순서로 진행. 이전 단계 안정화 후 다음으로.
+4. **파이프라인 안정화 후 실데이터 전환**: M1-1 상권 선정 → M1-2 실데이터 시드 20–30개 작성(`data/seeds/raw/`) → 재인덱싱.
    - Codex 구현 프롬프트는 단계별로 요청 시 Claude Code가 `/codex-task`로 작성.

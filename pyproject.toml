@@ -14,6 +14,9 @@ dependencies = []
 dev = [
     "pytest>=8.0",
 ]
+embeddings = [
+    "sentence-transformers>=3.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["packages"]
