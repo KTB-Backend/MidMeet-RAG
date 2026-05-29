@@ -43,6 +43,7 @@ docs/
 |------|------|
 | [`task-plan.md`](exec-plans/task-plan.md) | 마일스톤·작업 단위·담당 도구·완료 조건 |
 | [`agent-workflow.md`](exec-plans/agent-workflow.md) | Codex CLI 작업 흐름·완료 체크리스트 |
+| [`how-to-run-test.md`](exec-plans/how-to-run-test.md) | 로컬 venv 단계별 실행·테스트 런북(단계별 통과 기준 포함) |
 
 ### references/ — 정책·평가
 
